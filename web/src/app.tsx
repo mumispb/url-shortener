@@ -1,9 +1,16 @@
-import { UploadWidget } from "./components/upload-widget";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Home } from "./pages/Home";
+import { Redirect } from "./pages/Redirect";
+import { NotFound } from "./pages/NotFound";
 
 export function App() {
   return (
-    <main className="h-dvh flex flex-col items-center justify-center p-10">
-      <UploadWidget />
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/:id" element={<Redirect />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
