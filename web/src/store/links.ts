@@ -9,6 +9,7 @@ import {
 
 export interface Link {
   id: string;
+  slug: string;
   shortUrl: string;
   originalUrl: string;
   accessCount: number;
@@ -17,14 +18,14 @@ export interface Link {
 interface LinksState {
   links: Map<string, Link>;
   addLink: (link: Omit<Link, "id"> & { id?: string }) => void;
-  deleteLink: (id: string) => void;
-  incrementAccessCount: (id: string) => void;
+  deleteLink: (slug: string) => void;
+  incrementAccessCount: (slug: string) => void;
 }
 
 export interface LinksStateAsync extends LinksState {
   isLoading: boolean;
   loadLinks: () => Promise<void>;
-  createLink: (originalUrl: string) => Promise<void>;
+  createLink: (originalUrl: string, slug: string) => Promise<void>;
 }
 
 enableMapSet();
@@ -41,8 +42,10 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
       set((state) => {
         state.links.clear();
         list.forEach((item) => {
-          state.links.set(item.id, {
+          const slug = item.shortenedUrl.split("/").pop() ?? item.id;
+          state.links.set(slug, {
             id: item.id,
+            slug,
             shortUrl: item.shortenedUrl,
             originalUrl: item.originalUrl,
             accessCount: item.visits,
@@ -51,43 +54,52 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
         state.isLoading = false;
       });
     },
-    async createLink(originalUrl: string) {
+    async createLink(originalUrl: string, slug: string) {
       set((state) => {
         state.isLoading = true;
       });
-      const shortenedUrl = await createShorten(originalUrl);
-      // After creation, refresh list
-      await get().loadLinks();
-      set((state) => {
-        state.isLoading = false;
-      });
+      try {
+        // attempt to create
+        await createShorten(originalUrl, slug);
+        // refresh list
+        await get().loadLinks();
+      } catch (err) {
+        console.error(err);
+        // propagate error for caller to handle
+        throw err;
+      } finally {
+        set((state) => {
+          state.isLoading = false;
+        });
+      }
     },
     addLink(link) {
       const id = link.id ?? crypto.randomUUID();
-      const newLink: Link = { ...link, id } as Link;
+      const slug = link.slug ?? link.shortUrl.split("/").pop() ?? id;
+      const newLink: Link = { ...link, id, slug } as Link;
       set((state) => {
-        state.links.set(id, newLink);
+        state.links.set(slug, newLink);
       });
     },
-    async deleteLink(id) {
+    async deleteLink(slug) {
       // optimistic update
       set((state) => {
-        state.links.delete(id);
+        state.links.delete(slug);
       });
       try {
-        await deleteShortenApi(id);
+        await deleteShortenApi(slug);
       } catch (err) {
         console.error(err);
         // rollback? for now ignore
       }
     },
-    incrementAccessCount(id) {
-      const link = get().links.get(id);
+    incrementAccessCount(slug) {
+      const link = get().links.get(slug);
       if (!link) return;
       set((state) => {
-        const existing = state.links.get(id);
+        const existing = state.links.get(slug);
         if (existing) {
-          state.links.set(id, {
+          state.links.set(slug, {
             ...existing,
             accessCount: existing.accessCount + 1,
           });

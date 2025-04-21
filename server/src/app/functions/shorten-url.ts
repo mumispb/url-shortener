@@ -5,6 +5,7 @@ import { generateShortenedUrl } from "../utils/generate-shortened-url";
 
 const shortenUrlInput = z.object({
   originalUrl: z.string().url(),
+  slug: z.string().optional(),
 });
 
 type ShortenUrlInput = z.input<typeof shortenUrlInput>;
@@ -12,9 +13,11 @@ type ShortenUrlInput = z.input<typeof shortenUrlInput>;
 export async function shortenUrl(
   input: ShortenUrlInput
 ): Promise<{ shortenedUrl: string }> {
-  const { originalUrl } = shortenUrlInput.parse(input);
+  const { originalUrl, slug } = shortenUrlInput.parse(input);
 
-  const shortenedUrl = generateShortenedUrl(originalUrl);
+  const shortenedUrl = slug
+    ? `https://brev.ly/${slug}`
+    : generateShortenedUrl(originalUrl);
 
   await db.insert(schema.shortens).values({
     originalUrl,

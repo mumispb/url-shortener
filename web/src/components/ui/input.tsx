@@ -38,6 +38,7 @@ export interface InputProps
   labelClassName?: string;
   icon?: ReactNode;
   iconPosition?: "left" | "right";
+  prefix?: string;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
   fullWidth?: boolean;
@@ -56,6 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       iconPosition = "right",
       fullWidth = true,
       id,
+      prefix,
       ...props
     },
     ref
@@ -63,6 +65,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputClasses = inputVariants({ state, className });
     const labelClasses = labelVariants({ state, className: labelClassName });
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Dynamic left padding when we have icon or prefix. We favour prefix because in this
+    // UI we won't render prefix and icon simultaneously on the left.
+    const hasLeftAdornment = !!prefix || (icon && iconPosition === "left");
+    const leftPaddingClass = prefix
+      ? "pl-24" // roughly 6rem, enough for `brev.ly/` and a little more
+      : icon && iconPosition === "left"
+      ? "pl-9"
+      : "";
+
+    const rightPaddingClass = icon && iconPosition === "right" ? "pr-9" : "";
 
     return (
       <div className={fullWidth ? "w-full" : ""}>
@@ -72,12 +85,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className="relative">
+          {prefix && (
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 select-none text-gray-scale-400">
+              {prefix}
+            </span>
+          )}
           <input
             ref={ref}
             id={inputId}
-            className={`${inputClasses} ${
-              icon && iconPosition === "left" ? "pl-9" : ""
-            } ${icon && iconPosition === "right" ? "pr-9" : ""}`}
+            className={`${inputClasses} ${leftPaddingClass} ${rightPaddingClass}`}
             {...props}
           />
           {icon && (

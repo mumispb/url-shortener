@@ -8,9 +8,10 @@ export interface Shorten {
   createdAt: string;
 }
 
-export async function createShorten(originalUrl: string) {
+export async function createShorten(originalUrl: string, slug: string) {
   const response = await api.post<{ shortenedUrl: string }>("/shortens", {
     originalUrl,
+    slug,
   });
   return response.data.shortenedUrl;
 }
@@ -22,14 +23,12 @@ export async function fetchShortens() {
   return response.data.shortens;
 }
 
-export async function deleteShorten(id: string) {
-  await api.delete("/shortens", { params: { id } });
+export async function deleteShorten(slug: string) {
+  await api.delete("/shortens", { params: { slug } });
 }
 
-export async function resolveOriginal(shortenedUrl: string) {
-  const response = await api.get<{ originalUrl: string }>(
-    `/shortens/${shortenedUrl}`
-  );
+export async function resolveOriginal(slug: string) {
+  const response = await api.get<{ originalUrl: string }>(`/shortens/${slug}`);
   return response.data.originalUrl;
 }
 

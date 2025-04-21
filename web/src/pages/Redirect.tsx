@@ -1,26 +1,37 @@
 import LogoIcon from "@assets/icons/logo_icon.svg?react";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "motion/react";
 import { resolveOriginal } from "../http/shortens";
 import { useLinks } from "../store/links";
 
 export function Redirect() {
-  const { id } = useParams<{ id: string }>();
+  const { id: slug } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isLoading } = useLinks((s) => ({ isLoading: s.isLoading }));
+  const isLoading = useLinks((state) => state.isLoading);
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug || hasRedirected.current) return;
+    hasRedirected.current = true;
     // start loading
     useLinks.setState({ isLoading: true });
     const doRedirect = async () => {
       try {
-        const original = await resolveOriginal(id);
+        const original = await resolveOriginal(slug);
         // fake delay of 3 seconds
         await new Promise((res) => setTimeout(res, 3000));
+        // perform redirect
         window.location.replace(original);
+        // increment local cache
+        useLinks.getState().incrementAccessCount(slug);
+        // broadcast to other tabs that visits count updated
+        try {
+          const bc = new BroadcastChannel("visits");
+          bc.postMessage(slug);
+          bc.close();
+        } catch {}
       } catch (err) {
         console.error(err);
         navigate("/404", { replace: true });
@@ -30,7 +41,7 @@ export function Redirect() {
       }
     };
     doRedirect();
-  }, [id, navigate]);
+  }, [slug, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-4">
@@ -45,7 +56,7 @@ export function Redirect() {
           </p>
           <p className="text-center text-gray-scale-500">
             Não foi redirecionado?{" "}
-            <Link to={`/${id}`} className="text-blue-base">
+            <Link to={`/${slug}`} className="text-blue-base">
               Acesse aqui
             </Link>
           </p>

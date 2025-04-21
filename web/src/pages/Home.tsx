@@ -3,7 +3,6 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useState, useEffect } from "react";
 import { useLinks } from "../store/links";
-import { useShallow } from "zustand/shallow";
 import { Download, Copy, Trash2 } from "lucide-react";
 import { exportShortens } from "../http/shortens";
 
@@ -16,20 +15,12 @@ interface LinkItem {
 
 export function Home() {
   const [originalUrl, setOriginalUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
-  const {
-    links: linksMap,
-    createLink,
-    loadLinks,
-    deleteLink,
-  } = useLinks(
-    useShallow((state) => ({
-      links: state.links,
-      createLink: state.createLink,
-      deleteLink: state.deleteLink,
-      loadLinks: state.loadLinks,
-    }))
-  );
+  const [slug, setSlug] = useState("");
+  const linksMap = useLinks((state) => state.links);
+  const isLoading = useLinks((state) => state.isLoading);
+  const createLink = useLinks((state) => state.createLink);
+  const loadLinks = useLinks((state) => state.loadLinks);
+  const deleteLink = useLinks((state) => state.deleteLink);
 
   const links = Array.from(linksMap.values());
   const hasLinks = links.length > 0;
@@ -38,12 +29,33 @@ export function Home() {
     loadLinks().catch(console.error);
   }, [loadLinks]);
 
-  const handleSaveLink = () => {
-    if (!originalUrl) return;
+  // Listen for visit updates from other tabs
+  useEffect(() => {
+    const bc = new BroadcastChannel("visits");
+    bc.onmessage = (event) => {
+      const visitSlug = event.data as string;
+      // increment access count in store
+      useLinks.getState().incrementAccessCount(visitSlug);
+    };
+    return () => bc.close();
+  }, []);
 
-    createLink(originalUrl).catch(console.error);
-    setOriginalUrl("");
-    setShortUrl("");
+  const handleSaveLink = async () => {
+    if (!originalUrl || !slug) return;
+    console.log("handleSaveLink:", { originalUrl, slug });
+    const fullUrl = originalUrl.startsWith("http")
+      ? originalUrl
+      : `https://${originalUrl}`;
+    console.log("fullUrl =>", fullUrl);
+    try {
+      console.log("createLink:", { fullUrl, slug });
+      await createLink(fullUrl, slug);
+      setOriginalUrl("");
+      setSlug("");
+    } catch (err) {
+      console.error("Error saving link:", err);
+      alert("Erro ao salvar link");
+    }
   };
 
   const handleExportCsv = async () => {
@@ -79,18 +91,28 @@ export function Home() {
 
               <Input
                 label="LINK ENCURTADO"
-                placeholder="brev.ly/"
-                value={shortUrl}
-                onChange={(e) => setShortUrl(e.target.value)}
+                prefix="brev.ly/"
+                placeholder="meu-link"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.replace(/\s+/g, ""))}
               />
 
-              <Button onClick={handleSaveLink} className="mt-4 w-full">
-                Salvar link
+              <Button
+                onClick={handleSaveLink}
+                className="mt-4 w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Salvando..." : "Salvar link"}
               </Button>
             </div>
           </div>
 
           <div className="bg-white rounded-lg p-6 flex flex-col">
+            {isLoading && (
+              <div className="w-full h-1 mb-2 overflow-hidden rounded bg-gray-scale-200">
+                <div className="w-full h-full animate-pulse bg-blue-base" />
+              </div>
+            )}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-scale-600">
                 Meus links
@@ -100,6 +122,7 @@ export function Home() {
                 size="default"
                 leftIcon={<Download size={16} />}
                 onClick={handleExportCsv}
+                className="border-transparent"
               >
                 Baixar CSV
               </Button>
@@ -107,37 +130,53 @@ export function Home() {
 
             {hasLinks ? (
               <div className="space-y-4 overflow-y-auto max-h-80 pr-1">
-                {links.map((link) => (
-                  <div key={link.id} className="border-b pb-2">
-                    <a
-                      href={`/${link.id}`}
-                      className="font-medium text-blue-base hover:underline"
+                {links.map((link) => {
+                  const linkSlug = link.shortUrl.split("/").pop() ?? link.id;
+                  const friendlyUrl = `${window.location.host}/${linkSlug}`;
+
+                  return (
+                    <div
+                      key={linkSlug}
+                      className="border-b pb-2 flex justify-between items-start gap-4"
                     >
-                      {link.shortUrl.replace(/^https?:\/\//, "")}
-                    </a>
-                    <div className="text-sm text-gray-scale-500 truncate">
-                      {link.originalUrl.replace(/^https?:\/\//, "")}
+                      <div className="flex-1 min-w-0">
+                        <a
+                          href={`/${linkSlug}`}
+                          className="font-medium text-blue-base hover:underline break-all"
+                        >
+                          {friendlyUrl}
+                        </a>
+                        <div className="text-sm text-gray-scale-500 truncate">
+                          {link.originalUrl.replace(/^https?:\/\//, "https://")}
+                        </div>
+                        <div className="text-xs text-gray-scale-400">
+                          {link.accessCount} acessos
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2 items-end pt-1">
+                        <button
+                          type="button"
+                          className="text-gray-scale-400 hover:text-blue-base"
+                          onClick={() =>
+                            navigator.clipboard.writeText(
+                              `https://${friendlyUrl}`
+                            )
+                          }
+                        >
+                          <Copy size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteLink(linkSlug)}
+                          className="text-gray-scale-400 hover:text-red-500"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-scale-400">
-                      {link.accessCount} acessos
-                    </div>
-                    <div className="flex gap-2 mt-1">
-                      <button
-                        type="button"
-                        className="text-gray-scale-400 hover:text-blue-base"
-                      >
-                        <Copy size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteLink(link.id)}
-                        className="text-gray-scale-400 hover:text-red-500"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-48">

@@ -10,7 +10,7 @@ export const shortenUrlRoute: FastifyPluginAsyncZod = async (server) => {
         summary: "Creates a shortened URL",
         tags: ["shortens"],
         consumes: ["application/json"],
-        body: z.object({ originalUrl: z.string().url() }),
+        body: z.object({ originalUrl: z.string().url(), slug: z.string() }),
         response: {
           201: z
             .object({ shortenedUrl: z.string() })
@@ -22,6 +22,7 @@ export const shortenUrlRoute: FastifyPluginAsyncZod = async (server) => {
     async (request, reply) => {
       const { shortenedUrl } = await shortenUrl({
         originalUrl: request.body.originalUrl,
+        slug: request.body.slug,
       });
 
       return reply.status(201).send({ shortenedUrl });
