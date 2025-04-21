@@ -1,5 +1,5 @@
 {
-  "name": "upload-server",
+  "name": "url-shortener-server",
   "version": "1.0.0",
   "type": "module",
   "description": "",
