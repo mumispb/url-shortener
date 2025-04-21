@@ -36,4 +36,6 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+        working-directory: ./server
       - run: npm test
+        working-directory: ./server
