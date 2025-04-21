@@ -35,5 +35,6 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - run: cd server
       - run: npm ci
       - run: npm test
