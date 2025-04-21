@@ -1,25 +1,33 @@
 import LogoIcon from "@assets/icons/logo_icon.svg?react";
 
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLinks } from "../store/links";
+import { resolveOriginal } from "../http/shortens";
 
 export function Redirect() {
   const { id } = useParams<{ id: string }>();
   const [redirecting, setRedirecting] = useState(true);
   const incrementAccessCount = useLinks((state) => state.incrementAccessCount);
+  const navigate = useNavigate();
+
+  const handleRedirect = async () => {
+    if (!id) return;
+    try {
+      const original = await resolveOriginal(id);
+      window.location.replace(original);
+    } catch (err) {
+      console.error(err);
+      navigate("/404", { replace: true });
+    } finally {
+      setRedirecting(false);
+      incrementAccessCount(id);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setRedirecting(false);
-
-      if (id) {
-        incrementAccessCount(id);
-      }
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [id, incrementAccessCount]);
+    handleRedirect();
+  }, [id]);
 
   return (
     <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-4">

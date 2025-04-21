@@ -9,6 +9,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/:id" element={<Redirect />} />
+        <Route path="404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

@@ -1,7 +1,7 @@
 import Logo from "@assets/icons/logo.svg?react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLinks } from "../store/links";
 import { useShallow } from "zustand/shallow";
 
@@ -17,32 +17,29 @@ export function Home() {
   const [shortUrl, setShortUrl] = useState("");
   const {
     links: linksMap,
-    addLink,
+    createLink,
+    loadLinks,
     deleteLink,
   } = useLinks(
     useShallow((state) => ({
       links: state.links,
-      addLink: state.addLink,
+      createLink: state.createLink,
       deleteLink: state.deleteLink,
+      loadLinks: state.loadLinks,
     }))
   );
 
   const links = Array.from(linksMap.values());
   const hasLinks = links.length > 0;
 
+  useEffect(() => {
+    loadLinks().catch(console.error);
+  }, [loadLinks]);
+
   const handleSaveLink = () => {
     if (!originalUrl) return;
 
-    const newLink: LinkItem = {
-      id: crypto.randomUUID(),
-      shortUrl: `brev.ly/${
-        shortUrl || Math.random().toString(36).substring(2, 8)
-      }`,
-      originalUrl,
-      accessCount: Math.floor(Math.random() * 100),
-    };
-
-    addLink(newLink);
+    createLink(originalUrl).catch(console.error);
     setOriginalUrl("");
     setShortUrl("");
   };
