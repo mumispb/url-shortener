@@ -1,5 +1,5 @@
-import { uploads } from './uploads'
+import { shortens } from "./shortens";
 
 export const schema = {
-  uploads,
-}
+  shortens,
+};

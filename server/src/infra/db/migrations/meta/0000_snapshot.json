@@ -1,11 +1,11 @@
 {
-  "id": "1bdd8b01-1284-4af0-8b67-69611fa72bb4",
+  "id": "b589c2d3-af09-4a6c-b27a-a573bf781919",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.uploads": {
-      "name": "uploads",
+    "public.shortens": {
+      "name": "shortens",
       "schema": "",
       "columns": {
         "id": {
@@ -14,20 +14,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "original_url": {
+          "name": "original_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "remote_key": {
-          "name": "remote_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "remote_url": {
-          "name": "remote_url",
+        "shortened_url": {
+          "name": "shortened_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -44,11 +38,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "uploads_remote_key_unique": {
-          "name": "uploads_remote_key_unique",
+        "shortens_shortened_url_unique": {
+          "name": "shortens_shortened_url_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "remote_key"
+            "shortened_url"
           ]
         }
       },
