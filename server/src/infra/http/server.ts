@@ -1,9 +1,8 @@
-import { exportUploadsRoute } from "@/infra/http/routes/export-uploads";
 import { getUploadsRoute } from "@/infra/http/routes/get-uploads";
-import {
-  shortenUrlRoute,
-  uploadImageRoute,
-} from "@/infra/http/routes/shorten-url";
+import { shortenUrlRoute } from "@/infra/http/routes/shorten-url";
+import { getOriginalUrlRoute } from "@/infra/http/routes/get-original-url";
+import { deleteShortensRoute } from "@/infra/http/routes/delete-shortens";
+import { getShortensRoute } from "@/infra/http/routes/get-shortens";
 import { transformSwaggerSchema } from "@/infra/http/transform-swagger-schema";
 import { fastifyCors } from "@fastify/cors";
 import { fastifyMultipart } from "@fastify/multipart";
@@ -15,6 +14,7 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
+import { exportShortensRoute } from "@/infra/http/routes/export-shortens";
 
 const server = fastify();
 
@@ -52,8 +52,10 @@ server.register(fastifySwaggerUi, {
 });
 
 server.register(shortenUrlRoute);
-// server.register(getUploadsRoute);
-// server.register(exportUploadsRoute);
+server.register(getOriginalUrlRoute);
+server.register(deleteShortensRoute);
+server.register(getShortensRoute);
+server.register(exportShortensRoute);
 
 server.listen({ port: 3333, host: "0.0.0.0" }).then(() => {
   console.log("HTTP Server running!");

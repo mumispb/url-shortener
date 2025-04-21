@@ -1,0 +1,1 @@
+ALTER TABLE "shortens" ADD COLUMN "visits" integer DEFAULT 0 NOT NULL;

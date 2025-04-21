@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 
 export const shortens = pgTable("shortens", {
@@ -8,4 +8,5 @@ export const shortens = pgTable("shortens", {
   originalUrl: text("original_url").notNull(),
   shortenedUrl: text("shortened_url").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  visits: integer("visits").notNull().default(0),
 });

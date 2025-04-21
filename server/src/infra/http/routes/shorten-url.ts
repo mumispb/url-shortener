@@ -20,24 +20,11 @@ export const shortenUrlRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
-      const result = await shortenUrl({
+      const { shortenedUrl } = await shortenUrl({
         originalUrl: request.body.originalUrl,
       });
 
-      return { shortenedUrl: result.shortenedUrl };
-
-      // if (isRight(result)) {
-      //   console.log(unwrapEither(result));
-
-      //   return reply.status(201).send(unwrapEither(result));
-      // }
-
-      // const error = unwrapEither(result);
-
-      // switch (error.constructor.name) {
-      //   case "InvalidFileFormat":
-      //     return reply.status(400).send({ message: error.message });
-      // }
+      return reply.status(201).send({ shortenedUrl });
     }
   );
 };

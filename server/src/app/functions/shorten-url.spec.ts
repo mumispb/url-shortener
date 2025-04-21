@@ -1,4 +1,3 @@
-import { InvalidUrl } from "@/app/functions/errors/invalid-url";
 import { shortenUrl } from "@/app/functions/shorten-url";
 import { db } from "@/infra/db";
 import { schema } from "@/infra/db/schemas";
