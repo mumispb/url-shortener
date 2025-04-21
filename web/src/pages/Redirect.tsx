@@ -1,33 +1,36 @@
 import LogoIcon from "@assets/icons/logo_icon.svg?react";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useLinks } from "../store/links";
+import { motion } from "motion/react";
 import { resolveOriginal } from "../http/shortens";
+import { useLinks } from "../store/links";
 
 export function Redirect() {
   const { id } = useParams<{ id: string }>();
-  const [redirecting, setRedirecting] = useState(true);
-  const incrementAccessCount = useLinks((state) => state.incrementAccessCount);
   const navigate = useNavigate();
-
-  const handleRedirect = async () => {
-    if (!id) return;
-    try {
-      const original = await resolveOriginal(id);
-      window.location.replace(original);
-    } catch (err) {
-      console.error(err);
-      navigate("/404", { replace: true });
-    } finally {
-      setRedirecting(false);
-      incrementAccessCount(id);
-    }
-  };
+  const { isLoading } = useLinks((s) => ({ isLoading: s.isLoading }));
 
   useEffect(() => {
-    handleRedirect();
-  }, [id]);
+    if (!id) return;
+    // start loading
+    useLinks.setState({ isLoading: true });
+    const doRedirect = async () => {
+      try {
+        const original = await resolveOriginal(id);
+        // fake delay of 3 seconds
+        await new Promise((res) => setTimeout(res, 3000));
+        window.location.replace(original);
+      } catch (err) {
+        console.error(err);
+        navigate("/404", { replace: true });
+      } finally {
+        // finish loading
+        useLinks.setState({ isLoading: false });
+      }
+    };
+    doRedirect();
+  }, [id, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-4">
@@ -37,7 +40,7 @@ export function Redirect() {
 
           <h2 className="text-xl font-bold mb-2">Redirecionando...</h2>
 
-          <p className="text-center text-gray-scale-500 mb-4">
+          <p className="text-center text-gray-scale-500 mb-2">
             O link será aberto automaticamente em alguns instantes.
           </p>
           <p className="text-center text-gray-scale-500">
@@ -46,6 +49,18 @@ export function Redirect() {
               Acesse aqui
             </Link>
           </p>
+          {isLoading && (
+            <div className="flex items-center justify-center space-x-2 mt-4">
+              {[0, 0.2, 0.4].map((delay) => (
+                <motion.span
+                  key={delay}
+                  className="w-2 h-2 bg-blue-base rounded-full"
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ repeat: Infinity, duration: 1, delay }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 const getOriginalUrlInput = z.object({
-  shortenedUrl: z.string(),
+  id: z.string(),
 });
 
 type GetOriginalUrlInput = z.input<typeof getOriginalUrlInput>;
@@ -12,21 +12,20 @@ type GetOriginalUrlInput = z.input<typeof getOriginalUrlInput>;
 export async function getOriginalUrl(
   input: GetOriginalUrlInput
 ): Promise<{ originalUrl: string }> {
-  const { shortenedUrl } = getOriginalUrlInput.parse(input);
+  const { id } = getOriginalUrlInput.parse(input);
 
   const [row] = await db
     .select({ originalUrl: schema.shortens.originalUrl })
     .from(schema.shortens)
-    .where(eq(schema.shortens.shortenedUrl, shortenedUrl));
+    .where(eq(schema.shortens.id, id));
 
   if (!row) {
     throw new Error("Shortened URL not found");
   }
 
-  await pg.unsafe(
-    "UPDATE shortens SET visits = visits + 1 WHERE shortened_url = $1",
-    [shortenedUrl]
-  );
+  await pg.unsafe("UPDATE shortens SET visits = visits + 1 WHERE id = $1", [
+    id,
+  ]);
 
   return { originalUrl: row.originalUrl };
 }

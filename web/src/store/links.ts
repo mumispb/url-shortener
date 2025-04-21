@@ -22,6 +22,7 @@ interface LinksState {
 }
 
 export interface LinksStateAsync extends LinksState {
+  isLoading: boolean;
   loadLinks: () => Promise<void>;
   createLink: (originalUrl: string) => Promise<void>;
 }
@@ -31,7 +32,11 @@ enableMapSet();
 export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
   immer((set, get) => ({
     links: new Map(),
+    isLoading: false,
     async loadLinks() {
+      set((state) => {
+        state.isLoading = true;
+      });
       const list = await fetchShortens();
       set((state) => {
         state.links.clear();
@@ -43,12 +48,19 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
             accessCount: item.visits,
           });
         });
+        state.isLoading = false;
       });
     },
     async createLink(originalUrl: string) {
+      set((state) => {
+        state.isLoading = true;
+      });
       const shortenedUrl = await createShorten(originalUrl);
-      // After creation, refresh list to get id/visits values
+      // After creation, refresh list
       await get().loadLinks();
+      set((state) => {
+        state.isLoading = false;
+      });
     },
     addLink(link) {
       const id = link.id ?? crypto.randomUUID();

@@ -4,12 +4,12 @@ import { z } from "zod";
 
 export const getOriginalUrlRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
-    "/shortens/:shortenedUrl",
+    "/shortens/:id",
     {
       schema: {
-        summary: "Get original URL by shortened URL",
+        summary: "Get original URL by id",
         tags: ["shortens"],
-        params: z.object({ shortenedUrl: z.string() }),
+        params: z.object({ id: z.string() }),
         response: {
           200: z.object({ originalUrl: z.string().url() }),
           404: z.object({ message: z.string() }),
@@ -19,7 +19,7 @@ export const getOriginalUrlRoute: FastifyPluginAsyncZod = async (server) => {
     async (request, reply) => {
       try {
         const { originalUrl } = await getOriginalUrl({
-          shortenedUrl: request.params.shortenedUrl,
+          id: request.params.id,
         });
         return reply.status(200).send({ originalUrl });
       } catch (error) {

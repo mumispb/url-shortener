@@ -36,8 +36,13 @@ export async function resolveOriginal(shortenedUrl: string) {
 export async function exportShortens(searchQuery?: string) {
   const response = await api.post<{ reportUrl: string }>(
     "/shortens/exports",
-    null,
-    { params: { searchQuery } }
+    {},
+    {
+      params: { searchQuery },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
   );
   return response.data.reportUrl;
 }
