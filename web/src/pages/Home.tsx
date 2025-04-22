@@ -106,8 +106,8 @@ export function Home() {
           <Logo />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg p-6 flex flex-col self-start">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,380px)_1fr] gap-5">
+          <div className="bg-white rounded-lg p-6 flex flex-col self-start ">
             <h2 className="text-lg font-bold text-gray-scale-600 md:mb-6 sm:mb-4">
               Novo link
             </h2>
@@ -197,7 +197,7 @@ export function Home() {
             {hasLinks ? (
               <div className="space-y-4 overflow-y-auto max-h-80 pr-1">
                 {links.map((link) => {
-                  const friendlyUrl = `${window.location.host}/${link.slug}`;
+                  const friendlyUrl = `${link.slug}`;
 
                   return (
                     <div

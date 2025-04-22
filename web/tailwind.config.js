@@ -24,6 +24,7 @@ export default {
       },
       spacing: {
         2.25: "0.5625rem",
+        1.75: "0.4375rem",
       },
       fontSize: {
         xxs: "0.625rem",

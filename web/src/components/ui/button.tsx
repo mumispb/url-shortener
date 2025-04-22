@@ -10,8 +10,8 @@ const buttonVariants = tv({
       primary:
         "bg-blue-base text-gray-scale-0 text-md rounded px-4 py-4 hover:bg-blue-dark hover:border-blue-dark rounded-lg disabled:bg-blue-base disabled:opacity-50 disabled:cursor-not-allowed",
       secondary:
-        "text-xs bg-gray-scale-200 text-gray-scale-600 border-gray-scale-300 rounded gap-2 px-4 py-2 hover:border-blue-base disabled:bg-gray-scale-200",
-      icon: "p-2 bg-gray-scale-200 text-gray-scale-600 border-gray-scale-300 rounded hover:border-blue-base",
+        "border border-transparent text-xs bg-gray-scale-200 text-gray-scale-600 rounded gap-2 px-4 py-2 hover:border-blue-base disabled:border-transparent disabled:bg-gray-scale-200",
+      icon: "border border-transparent p-1.75 bg-gray-scale-200 text-gray-scale-600 rounded hover:border-blue-base disabled:border-transparent",
     },
   },
 
