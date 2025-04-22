@@ -4,7 +4,6 @@ import { deleteShortensRoute } from "@/infra/http/routes/delete-shortens";
 import { getShortensRoute } from "@/infra/http/routes/get-shortens";
 import { transformSwaggerSchema } from "@/infra/http/transform-swagger-schema";
 import { fastifyCors } from "@fastify/cors";
-import { fastifyMultipart } from "@fastify/multipart";
 import { fastifySwagger } from "@fastify/swagger";
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 import { fastify } from "fastify";
@@ -20,7 +19,7 @@ const server = fastify();
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((error, _request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {
     return reply.status(400).send({
       message: "Validation error",
@@ -35,7 +34,6 @@ server.setErrorHandler((error, request, reply) => {
 
 server.register(fastifyCors, { origin: "*" });
 
-// server.register(fastifyMultipart);
 server.register(fastifySwagger, {
   openapi: {
     info: {
