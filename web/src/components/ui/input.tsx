@@ -1,3 +1,4 @@
+import { Warning } from "@phosphor-icons/react";
 import {
   type InputHTMLAttributes,
   type ReactNode,
@@ -81,9 +82,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       }
     }, [prefix]);
 
-    // Dynamic left padding when we have icon or prefix. We favour prefix because in this
-    // UI we won't render prefix and icon simultaneously on the left.
-    const hasLeftAdornment = !!prefix || (icon && iconPosition === "left");
     const leftPaddingClass = icon && iconPosition === "left" ? "pl-9" : "";
     const rightPaddingClass = icon && iconPosition === "right" ? "pr-9" : "";
     const inputStyle = prefix ? { paddingLeft: prefixWidth + 12 } : undefined;
@@ -122,21 +120,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && state === "error" && (
-          <div className="flex items-center mt-1 text-error text-sm">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <title>Error Icon</title>
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <div className="flex items-center mt-1 text-error text-sm gap-1">
+            <Warning size={16} />
             {error}
           </div>
         )}
