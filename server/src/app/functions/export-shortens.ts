@@ -34,7 +34,7 @@ export async function exportShortens(
     .select({
       id: schema.shortens.id,
       originalUrl: schema.shortens.originalUrl,
-      shortenedUrl: schema.shortens.shortenedUrl,
+      slug: schema.shortens.slug,
       visits: schema.shortens.visits,
       createdAt: schema.shortens.createdAt,
     })
@@ -54,7 +54,7 @@ export async function exportShortens(
     columns: [
       { key: "id", header: "ID" },
       { key: "original_url", header: "URL Original" },
-      { key: "shortened_url", header: "URL Encurtada" },
+      { key: "slug", header: "URL Encurtada" },
       { key: "visits", header: "Visitas" },
       { key: "created_at", header: "Criado em" },
     ],

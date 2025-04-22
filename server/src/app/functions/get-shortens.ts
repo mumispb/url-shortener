@@ -18,7 +18,7 @@ type GetShortensOutput = {
   shortens: {
     id: string;
     originalUrl: string;
-    shortenedUrl: string;
+    slug: string;
     visits: number;
     createdAt: Date;
   }[];
@@ -36,7 +36,7 @@ export async function getShortens(
       .select({
         id: schema.shortens.id,
         originalUrl: schema.shortens.originalUrl,
-        shortenedUrl: schema.shortens.shortenedUrl,
+        slug: schema.shortens.slug,
         visits: schema.shortens.visits,
         createdAt: schema.shortens.createdAt,
       })

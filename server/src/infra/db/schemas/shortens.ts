@@ -6,7 +6,7 @@ export const shortens = pgTable("shortens", {
     .primaryKey()
     .$defaultFn(() => uuidv7()),
   originalUrl: text("original_url").notNull(),
-  shortenedUrl: text("shortened_url").notNull().unique(),
+  slug: text("slug").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   visits: integer("visits").notNull().default(0),
 });

@@ -23,7 +23,7 @@ export const getShortensRoute: FastifyPluginAsyncZod = async (server) => {
               z.object({
                 id: z.string(),
                 originalUrl: z.string().url(),
-                shortenedUrl: z.string(),
+                slug: z.string(),
                 visits: z.number(),
                 createdAt: z.date(),
               })

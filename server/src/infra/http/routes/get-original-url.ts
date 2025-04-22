@@ -1,4 +1,5 @@
 import { getOriginalUrl } from "@/app/functions/get-original-url";
+import { isLeft, unwrapEither } from "@/infra/shared/either";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 
@@ -17,16 +18,17 @@ export const getOriginalUrlRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
-      try {
-        const { originalUrl } = await getOriginalUrl({
-          slug: request.params.slug,
-        });
-        return reply.status(200).send({ originalUrl });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error";
-        return reply.status(404).send({ message });
+      const result = await getOriginalUrl({
+        slug: request.params.slug,
+      });
+
+      if (isLeft(result)) {
+        return reply.status(404).send({ message: result.left.message });
       }
+
+      const { originalUrl } = unwrapEither(result);
+
+      return reply.status(200).send({ originalUrl });
     }
   );
 };

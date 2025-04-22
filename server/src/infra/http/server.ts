@@ -1,4 +1,3 @@
-import { getUploadsRoute } from "@/infra/http/routes/get-uploads";
 import { shortenUrlRoute } from "@/infra/http/routes/shorten-url";
 import { getOriginalUrlRoute } from "@/infra/http/routes/get-original-url";
 import { deleteShortensRoute } from "@/infra/http/routes/delete-shortens";

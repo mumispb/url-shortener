@@ -2,6 +2,7 @@ import { db, pg } from "@/infra/db";
 import { schema } from "@/infra/db/schemas";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import { Either, makeLeft, makeRight } from "@/infra/shared/either";
 
 const getOriginalUrlInput = z.object({
   slug: z.string(),
@@ -11,24 +12,21 @@ type GetOriginalUrlInput = z.input<typeof getOriginalUrlInput>;
 
 export async function getOriginalUrl(
   input: GetOriginalUrlInput
-): Promise<{ originalUrl: string }> {
+): Promise<Either<Error, { originalUrl: string }>> {
   const { slug } = getOriginalUrlInput.parse(input);
-
-  const shortenedUrl = `https://brev.ly/${slug}`;
 
   const [row] = await db
     .select({ originalUrl: schema.shortens.originalUrl })
     .from(schema.shortens)
-    .where(eq(schema.shortens.shortenedUrl, shortenedUrl));
+    .where(eq(schema.shortens.slug, slug));
 
   if (!row) {
-    throw new Error("Shortened URL not found");
+    return makeLeft(new Error("Shortened URL not found"));
   }
 
-  await pg.unsafe(
-    "UPDATE shortens SET visits = visits + 1 WHERE shortened_url = $1",
-    [shortenedUrl]
-  );
+  await pg.unsafe("UPDATE shortens SET visits = visits + 1 WHERE slug = $1", [
+    slug,
+  ]);
 
-  return { originalUrl: row.originalUrl };
+  return makeRight({ originalUrl: row.originalUrl });
 }
