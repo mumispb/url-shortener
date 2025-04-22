@@ -51,11 +51,8 @@ export function Home() {
     return () => bc.close();
   }, []);
 
-  const fullOriginalUrl = originalUrl.startsWith("http")
-    ? originalUrl
-    : `https://${originalUrl}`;
   const formValidation = linkInputSchema.safeParse({
-    originalUrl: fullOriginalUrl,
+    originalUrl: originalUrl,
     slug,
   });
   const isFormValid = formValidation.success;
@@ -66,7 +63,7 @@ export function Home() {
     setSlugError(undefined);
 
     const result = linkInputSchema.safeParse({
-      originalUrl: fullOriginalUrl,
+      originalUrl,
       slug,
     });
     if (!result.success) {
@@ -104,51 +101,78 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-4">
-      <div className="bg-gray-scale-100 w-full max-w-6xl rounded-xl p-6">
-        <div className="flex justify-center mb-6">
-          <Logo className="h-8 text-blue-base" />
+      <div className="w-full max-w-6xl p-6">
+        <div className="flex justify-center md:justify-start mb-6">
+          <Logo />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg p-6 flex flex-col">
-            <h2 className="text-lg font-bold text-gray-scale-600 mb-4">
+          <div className="bg-white rounded-lg p-6 flex flex-col self-start">
+            <h2 className="text-lg font-bold text-gray-scale-600 md:mb-6 sm:mb-4">
               Novo link
             </h2>
 
-            <div className="space-y-4">
-              <Input
-                label="LINK ORIGINAL"
-                placeholder="www.exemplo.com.br"
-                value={originalUrl}
-                onChange={(e) => {
-                  setOriginalUrl(e.target.value);
-                  if (originalUrlError) setOriginalUrlError(undefined);
-                }}
-                state={originalUrlError ? "error" : "default"}
-                error={originalUrlError}
-              />
+            <Input
+              label="LINK ORIGINAL"
+              placeholder="www.exemplo.com.br"
+              value={originalUrl}
+              className="md:mb-4 sm:mb-4"
+              onChange={(e) => {
+                const newUrl = e.target.value;
+                setOriginalUrl(newUrl);
+                if (hasSubmitted) {
+                  const validation = linkInputSchema.safeParse({
+                    originalUrl: newUrl,
+                    slug,
+                  });
+                  if (!validation.success) {
+                    const issue = validation.error.issues.find(
+                      (i) => i.path[0] === "originalUrl"
+                    );
+                    setOriginalUrlError(issue?.message);
+                  } else {
+                    setOriginalUrlError(undefined);
+                  }
+                }
+              }}
+              state={originalUrlError ? "error" : "default"}
+              error={originalUrlError}
+            />
 
-              <Input
-                label="LINK ENCURTADO"
-                prefix="brev.ly/"
-                placeholder="meu-link"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value.replace(/\s+/g, ""));
-                  if (slugError) setSlugError(undefined);
-                }}
-                state={slugError ? "error" : "default"}
-                error={slugError}
-              />
+            <Input
+              label="LINK ENCURTADO"
+              prefix="brev.ly/"
+              placeholder="meu-link"
+              value={slug}
+              onChange={(e) => {
+                const newSlug = e.target.value.replace(/\s+/g, "");
+                setSlug(newSlug);
+                if (hasSubmitted) {
+                  const validation = linkInputSchema.safeParse({
+                    originalUrl,
+                    slug: newSlug,
+                  });
+                  if (!validation.success) {
+                    const issue = validation.error.issues.find(
+                      (i) => i.path[0] === "slug"
+                    );
+                    setSlugError(issue?.message);
+                  } else {
+                    setSlugError(undefined);
+                  }
+                }
+              }}
+              state={slugError ? "error" : "default"}
+              error={slugError}
+            />
 
-              <Button
-                onClick={handleSaveLink}
-                className="mt-4 w-full"
-                disabled={isLoading || (hasSubmitted && !isFormValid)}
-              >
-                {isLoading ? "Salvando..." : "Salvar link"}
-              </Button>
-            </div>
+            <Button
+              onClick={handleSaveLink}
+              className="md:mt-6 sm:mt-4 w-full"
+              disabled={isLoading || (hasSubmitted && !isFormValid)}
+            >
+              {isLoading ? "Salvando..." : "Salvar link"}
+            </Button>
           </div>
 
           <div className="bg-white rounded-lg p-6 flex flex-col">
@@ -188,7 +212,7 @@ export function Home() {
                           {friendlyUrl}
                         </a>
                         <div className="text-sm text-gray-scale-500 truncate">
-                          {link.originalUrl.replace(/^https?:\/\//, "https://")}
+                          {link.originalUrl}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 ml-auto">

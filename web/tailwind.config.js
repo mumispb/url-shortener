@@ -28,38 +28,38 @@ export default {
       fontSize: {
         xxs: "0.625rem",
         "text-xl": [
-          "24px",
+          "1.5rem",
           {
-            lineHeight: "32px",
+            lineHeight: "2rem",
             fontWeight: "bold",
           },
         ],
         "text-lg": [
-          "18px",
+          "1.125rem",
           {
-            lineHeight: "24px",
+            lineHeight: "1.5rem",
             fontWeight: "bold",
           },
         ],
         "text-md": [
-          "14px",
+          "0.875rem",
           {
-            lineHeight: "18px",
+            lineHeight: "1.125rem",
             fontWeight: "600",
           },
         ],
         "text-sm": [
-          "12px",
+          "0.75rem",
           {
-            lineHeight: "16px",
+            lineHeight: "1rem",
             fontWeight: "400",
             // Regular & SemiBold handled via classes, default is regular
           },
         ],
         "text-xs": [
-          "10px",
+          "0.625rem",
           {
-            lineHeight: "14px",
+            lineHeight: "0.875rem",
             fontWeight: "400",
             textTransform: "uppercase",
           },

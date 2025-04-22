@@ -10,7 +10,7 @@ import {
 import { tv } from "tailwind-variants";
 
 const inputVariants = tv({
-  base: "flex-grow w-full bg-white rounded-lg border border-gray-scale-300 px-3 py-2 text-gray-scale-500 focus:outline-none transition-colors",
+  base: "flex-grow w-full bg-white rounded-lg border border-gray-scale-300 p-4 text-gray-scale-500 focus:outline-none transition-colors",
   variants: {
     state: {
       default: "border-gray-scale-300",
@@ -24,7 +24,7 @@ const inputVariants = tv({
 });
 
 const labelVariants = tv({
-  base: "block mb-1 text-sm font-medium",
+  base: "block mb-2 text-sm font-medium",
   variants: {
     state: {
       default: "text-gray-scale-600",
