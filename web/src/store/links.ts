@@ -10,16 +10,15 @@ import {
 export interface Link {
   id: string;
   slug: string;
-  shortUrl: string;
   originalUrl: string;
-  accessCount: number;
+  visits: number;
+  createdAt: string;
 }
 
 interface LinksState {
   links: Map<string, Link>;
-  addLink: (link: Omit<Link, "id"> & { id?: string }) => void;
   deleteLink: (slug: string) => void;
-  incrementAccessCount: (slug: string) => void;
+  incrementVisits: (slug: string) => void;
 }
 
 export interface LinksStateAsync extends LinksState {
@@ -42,14 +41,7 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
       set((state) => {
         state.links.clear();
         list.forEach((item) => {
-          const slug = item.shortenedUrl.split("/").pop() ?? item.id;
-          state.links.set(slug, {
-            id: item.id,
-            slug,
-            shortUrl: item.shortenedUrl,
-            originalUrl: item.originalUrl,
-            accessCount: item.visits,
-          });
+          state.links.set(item.slug, item);
         });
         state.isLoading = false;
       });
@@ -59,27 +51,16 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
         state.isLoading = true;
       });
       try {
-        // attempt to create
         await createShorten(originalUrl, slug);
-        // refresh list
         await get().loadLinks();
       } catch (err) {
         console.error(err);
-        // propagate error for caller to handle
         throw err;
       } finally {
         set((state) => {
           state.isLoading = false;
         });
       }
-    },
-    addLink(link) {
-      const id = link.id ?? crypto.randomUUID();
-      const slug = link.slug ?? link.shortUrl.split("/").pop() ?? id;
-      const newLink: Link = { ...link, id, slug } as Link;
-      set((state) => {
-        state.links.set(slug, newLink);
-      });
     },
     async deleteLink(slug) {
       // optimistic update
@@ -93,7 +74,7 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
         // rollback? for now ignore
       }
     },
-    incrementAccessCount(slug) {
+    incrementVisits(slug) {
       const link = get().links.get(slug);
       if (!link) return;
       set((state) => {
@@ -101,7 +82,7 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
         if (existing) {
           state.links.set(slug, {
             ...existing,
-            accessCount: existing.accessCount + 1,
+            visits: existing.visits + 1,
           });
         }
       });

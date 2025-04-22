@@ -3,17 +3,17 @@ import { api } from "./api";
 export interface Shorten {
   id: string;
   originalUrl: string;
-  shortenedUrl: string;
+  slug: string;
   visits: number;
   createdAt: string;
 }
 
 export async function createShorten(originalUrl: string, slug: string) {
-  const response = await api.post<{ shortenedUrl: string }>("/shortens", {
+  const response = await api.post<{ slug: string }>("/shortens", {
     originalUrl,
     slug,
   });
-  return response.data.shortenedUrl;
+  return response.data.slug;
 }
 
 export async function fetchShortens() {

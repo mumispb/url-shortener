@@ -27,6 +27,7 @@ export function Home() {
   const [slug, setSlug] = useState("");
   const [originalUrlError, setOriginalUrlError] = useState<string>();
   const [slugError, setSlugError] = useState<string>();
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const linksMap = useLinks((state) => state.links);
   const isLoading = useLinks((state) => state.isLoading);
   const createLink = useLinks((state) => state.createLink);
@@ -45,22 +46,25 @@ export function Home() {
     const bc = new BroadcastChannel("visits");
     bc.onmessage = (event) => {
       const visitSlug = event.data as string;
-      useLinks.getState().incrementAccessCount(visitSlug);
+      useLinks.getState().incrementVisits(visitSlug);
     };
     return () => bc.close();
   }, []);
 
+  const fullOriginalUrl = originalUrl.startsWith("http")
+    ? originalUrl
+    : `https://${originalUrl}`;
+  const formValidation = linkInputSchema.safeParse({
+    originalUrl: fullOriginalUrl,
+    slug,
+  });
+  const isFormValid = formValidation.success;
+
   const handleSaveLink = async () => {
-    // clear previous errors
+    setHasSubmitted(true);
     setOriginalUrlError(undefined);
     setSlugError(undefined);
 
-    // prepare URL with protocol
-    const fullOriginalUrl = originalUrl.startsWith("http")
-      ? originalUrl
-      : `https://${originalUrl}`;
-
-    // validate using zod schema
     const result = linkInputSchema.safeParse({
       originalUrl: fullOriginalUrl,
       slug,
@@ -77,7 +81,6 @@ export function Home() {
       return;
     }
 
-    // all good, proceed with creation
     console.log("handleSaveLink:", result.data);
     try {
       await createLink(result.data.originalUrl, result.data.slug);
@@ -141,7 +144,7 @@ export function Home() {
               <Button
                 onClick={handleSaveLink}
                 className="mt-4 w-full"
-                disabled={!isLoading}
+                disabled={isLoading || (hasSubmitted && !isFormValid)}
               >
                 {isLoading ? "Salvando..." : "Salvar link"}
               </Button>
@@ -170,17 +173,16 @@ export function Home() {
             {hasLinks ? (
               <div className="space-y-4 overflow-y-auto max-h-80 pr-1">
                 {links.map((link) => {
-                  const linkSlug = link.shortUrl.split("/").pop() ?? link.id;
-                  const friendlyUrl = `${window.location.host}/${linkSlug}`;
+                  const friendlyUrl = `${window.location.host}/${link.slug}`;
 
                   return (
                     <div
-                      key={linkSlug}
+                      key={link.slug}
                       className="border-b pb-2 flex items-center gap-4"
                     >
                       <div className="flex-1 min-w-0">
                         <a
-                          href={`/${linkSlug}`}
+                          href={`/${link.slug}`}
                           className="font-medium text-blue-base hover:underline break-all"
                         >
                           {friendlyUrl}
@@ -191,7 +193,7 @@ export function Home() {
                       </div>
                       <div className="flex items-center gap-1 ml-auto">
                         <span className="text-xs text-gray-scale-500 whitespace-nowrap mr-4">
-                          {link.accessCount} acessos
+                          {link.visits} acessos
                         </span>
                         <Button
                           type="button"
@@ -211,7 +213,7 @@ export function Home() {
                           variant="icon"
                           leftIcon={<Trash size={16} />}
                           className="text-gray-scale-600 hover:border-error"
-                          onClick={() => deleteLink(linkSlug)}
+                          onClick={() => deleteLink(link.slug)}
                         />
                       </div>
                     </div>
