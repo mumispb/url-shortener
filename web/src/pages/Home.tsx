@@ -41,15 +41,6 @@ export function Home() {
     loadLinks().catch(console.error);
   }, [loadLinks]);
 
-  useEffect(() => {
-    const bc = new BroadcastChannel("visits");
-    bc.onmessage = (event) => {
-      const visitSlug = event.data as string;
-      useLinks.getState().incrementVisits(visitSlug);
-    };
-    return () => bc.close();
-  }, []);
-
   const formValidation = linkInputSchema.safeParse({ originalUrl, slug });
   const isFormValid = formValidation.success;
 
@@ -100,7 +91,7 @@ export function Home() {
 
             <Input
               label="LINK ORIGINAL"
-              placeholder="www.exemplo.com.br"
+              placeholder="https://www.exemplo.com.br"
               value={originalUrl}
               className="mb-4"
               onChange={(e) => {
@@ -207,7 +198,7 @@ export function Home() {
                           className="text-gray-scale-600 hover:text-blue-base"
                           onClick={() =>
                             navigator.clipboard.writeText(
-                              `https://${friendlyUrl}`
+                              `http://${window.location.host}/${friendlyUrl}`
                             )
                           }
                           leftIcon={<Copy size={16} />}

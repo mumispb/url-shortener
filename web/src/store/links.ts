@@ -27,6 +27,9 @@ export interface LinksStateAsync extends LinksState {
   createLink: (originalUrl: string, slug: string) => Promise<void>;
 }
 
+// setup cross-tab broadcast channel
+const bc = new BroadcastChannel("visits");
+
 enableMapSet();
 
 export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
@@ -75,17 +78,32 @@ export const useLinks = create<LinksStateAsync, [["zustand/immer", never]]>(
       }
     },
     incrementVisits(slug) {
+      // broadcast to other tabs
+      bc.postMessage(slug);
+      // update local state
       const link = get().links.get(slug);
       if (!link) return;
       set((state) => {
-        const existing = state.links.get(slug);
-        if (existing) {
-          state.links.set(slug, {
-            ...existing,
-            visits: existing.visits + 1,
-          });
-        }
+        state.links.set(slug, {
+          ...link,
+          visits: link.visits + 1,
+        });
       });
     },
   }))
 );
+
+// listen for visits broadcasted from other tabs
+bc.onmessage = (event: MessageEvent<string>) => {
+  console.log("visits broadcasted", event.data);
+  const slug = event.data;
+  useLinks.setState((state) => {
+    const existing = state.links.get(slug);
+    if (existing) {
+      state.links.set(slug, {
+        ...existing,
+        visits: existing.visits + 1,
+      });
+    }
+  });
+};
