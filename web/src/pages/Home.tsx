@@ -6,7 +6,7 @@ import { useLinks } from "../store/links";
 import { exportShortens } from "../http/shortens";
 import { z } from "zod";
 import type { ZodIssue } from "zod";
-import { Copy, Trash, DownloadSimple } from "@phosphor-icons/react";
+import { Copy, Trash, DownloadSimple, Info } from "@phosphor-icons/react";
 
 const linkInputSchema = z.object({
   originalUrl: z
@@ -28,11 +28,14 @@ export function Home() {
   const [originalUrlError, setOriginalUrlError] = useState<string>();
   const [slugError, setSlugError] = useState<string>();
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  type ToastData = { title: string; description: string };
+  const [toast, setToast] = useState<ToastData | null>(null);
   const linksMap = useLinks((state) => state.links);
   const isLoading = useLinks((state) => state.isLoading);
   const createLink = useLinks((state) => state.createLink);
   const loadLinks = useLinks((state) => state.loadLinks);
   const deleteLink = useLinks((state) => state.deleteLink);
+  const incrementVisits = useLinks((state) => state.incrementVisits);
 
   const links = Array.from(linksMap.values());
   const hasLinks = links.length > 0;
@@ -40,6 +43,12 @@ export function Home() {
   useEffect(() => {
     loadLinks().catch(console.error);
   }, [loadLinks]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const formValidation = linkInputSchema.safeParse({ originalUrl, slug });
   const isFormValid = formValidation.success;
@@ -78,6 +87,15 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-3 md:p-4">
+      {toast && (
+        <div className="fixed top-4 right-4 bg-blue-base text-gray-scale-0 shadow-lg rounded-lg flex p-4 max-w-sm">
+          <Info size={24} weight="fill" className="flex-none mr-3" />
+          <div className="flex flex-col">
+            <span className="font-semibold">{toast.title}</span>
+            <span className="text-sm mt-1">{toast.description}</span>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-6xl p-4 md:p-6">
         <div className="flex justify-center md:justify-start mb-6">
           <Logo />
@@ -180,6 +198,9 @@ export function Home() {
                       <div className="flex-1 min-w-0">
                         <a
                           href={`/${link.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => incrementVisits(link.slug)}
                           className="font-medium text-blue-base hover:underline break-all"
                         >
                           {friendlyUrl}
@@ -196,11 +217,14 @@ export function Home() {
                           type="button"
                           variant="icon"
                           className="text-gray-scale-600 hover:text-blue-base"
-                          onClick={() =>
-                            navigator.clipboard.writeText(
-                              `http://${window.location.host}/${friendlyUrl}`
-                            )
-                          }
+                          onClick={() => {
+                            const fullUrl = `https://${window.location.host}/${link.slug}`;
+                            navigator.clipboard.writeText(fullUrl);
+                            setToast({
+                              title: "Link copiado com sucesso",
+                              description: `O link ${fullUrl} foi copiado para a área de transferência`,
+                            });
+                          }}
                           leftIcon={<Copy size={16} />}
                         />
                         <Button
@@ -208,7 +232,15 @@ export function Home() {
                           variant="icon"
                           leftIcon={<Trash size={16} />}
                           className="text-gray-scale-600 hover:border-error"
-                          onClick={() => deleteLink(link.slug)}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Tem certeza que deseja deletar este link?"
+                              )
+                            ) {
+                              deleteLink(link.slug);
+                            }
+                          }}
                         />
                       </div>
                     </div>
