@@ -41,7 +41,6 @@ export function Home() {
     loadLinks().catch(console.error);
   }, [loadLinks]);
 
-  // Listen for visit updates from other tabs
   useEffect(() => {
     const bc = new BroadcastChannel("visits");
     bc.onmessage = (event) => {
@@ -51,10 +50,7 @@ export function Home() {
     return () => bc.close();
   }, []);
 
-  const formValidation = linkInputSchema.safeParse({
-    originalUrl: originalUrl,
-    slug,
-  });
+  const formValidation = linkInputSchema.safeParse({ originalUrl, slug });
   const isFormValid = formValidation.success;
 
   const handleSaveLink = async () => {
@@ -62,29 +58,20 @@ export function Home() {
     setOriginalUrlError(undefined);
     setSlugError(undefined);
 
-    const result = linkInputSchema.safeParse({
-      originalUrl,
-      slug,
-    });
+    const result = linkInputSchema.safeParse({ originalUrl, slug });
     if (!result.success) {
       result.error.issues.forEach((issue: ZodIssue) => {
-        if (issue.path[0] === "originalUrl") {
-          setOriginalUrlError(issue.message);
-        }
-        if (issue.path[0] === "slug") {
-          setSlugError(issue.message);
-        }
+        if (issue.path[0] === "originalUrl") setOriginalUrlError(issue.message);
+        if (issue.path[0] === "slug") setSlugError(issue.message);
       });
       return;
     }
 
-    console.log("handleSaveLink:", result.data);
     try {
       await createLink(result.data.originalUrl, result.data.slug);
       setOriginalUrl("");
       setSlug("");
-    } catch (err) {
-      console.error("Error saving link:", err);
+    } catch {
       alert("Erro ao salvar link");
     }
   };
@@ -93,22 +80,21 @@ export function Home() {
     try {
       const url = await exportShortens();
       window.open(url, "_blank");
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Erro ao exportar CSV");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-4">
-      <div className="w-full max-w-6xl p-6">
+    <div className="min-h-screen bg-gray-scale-200 flex items-start md:items-center justify-center p-3 md:p-4">
+      <div className="w-full max-w-6xl p-4 md:p-6">
         <div className="flex justify-center md:justify-start mb-6">
           <Logo />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,380px)_1fr] gap-5">
-          <div className="bg-white rounded-lg p-6 flex flex-col self-start ">
-            <h2 className="text-lg font-bold text-gray-scale-600 md:mb-6 sm:mb-4">
+          <div className="bg-white rounded-lg p-4 md:p-6 flex flex-col">
+            <h2 className="text-lg font-bold text-gray-scale-600 mb-4 md:mb-6">
               Novo link
             </h2>
 
@@ -116,7 +102,7 @@ export function Home() {
               label="LINK ORIGINAL"
               placeholder="www.exemplo.com.br"
               value={originalUrl}
-              className="md:mb-4 sm:mb-4"
+              className="mb-4"
               onChange={(e) => {
                 const newUrl = e.target.value;
                 setOriginalUrl(newUrl);
@@ -130,9 +116,7 @@ export function Home() {
                       (i) => i.path[0] === "originalUrl"
                     );
                     setOriginalUrlError(issue?.message);
-                  } else {
-                    setOriginalUrlError(undefined);
-                  }
+                  } else setOriginalUrlError(undefined);
                 }
               }}
               state={originalUrlError ? "error" : "default"}
@@ -157,9 +141,7 @@ export function Home() {
                       (i) => i.path[0] === "slug"
                     );
                     setSlugError(issue?.message);
-                  } else {
-                    setSlugError(undefined);
-                  }
+                  } else setSlugError(undefined);
                 }
               }}
               state={slugError ? "error" : "default"}
@@ -168,19 +150,20 @@ export function Home() {
 
             <Button
               onClick={handleSaveLink}
-              className="md:mt-6 sm:mt-4 w-full"
+              className="mt-4 md:mt-6 w-full"
               disabled={isLoading || (hasSubmitted && !isFormValid)}
             >
               {isLoading ? "Salvando..." : "Salvar link"}
             </Button>
           </div>
 
-          <div className="bg-white rounded-lg p-6 flex flex-col">
+          <div className="bg-white rounded-lg p-4 md:p-6 flex flex-col">
             {isLoading && (
-              <div className="w-full h-1 mb-2 overflow-hidden rounded bg-gray-scale-200">
+              <div className="w-full h-1 mb-4 overflow-hidden rounded bg-gray-scale-200">
                 <div className="w-full h-full animate-pulse bg-blue-base" />
               </div>
             )}
+
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-scale-600">
                 Meus links
@@ -198,7 +181,6 @@ export function Home() {
               <div className="space-y-4 overflow-y-auto max-h-80 pr-1">
                 {links.map((link) => {
                   const friendlyUrl = `${link.slug}`;
-
                   return (
                     <div
                       key={link.slug}
@@ -229,9 +211,7 @@ export function Home() {
                             )
                           }
                           leftIcon={<Copy size={16} />}
-                        >
-                          {/* Icon is now passed via leftIcon */}
-                        </Button>
+                        />
                         <Button
                           type="button"
                           variant="icon"
