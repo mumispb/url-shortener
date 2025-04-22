@@ -1,4 +1,11 @@
-import { type InputHTMLAttributes, type ReactNode, forwardRef } from "react";
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  forwardRef,
+  useState,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { tv } from "tailwind-variants";
 
 const inputVariants = tv({
@@ -65,17 +72,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputClasses = inputVariants({ state, className });
     const labelClasses = labelVariants({ state, className: labelClassName });
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const prefixRef = useRef<HTMLSpanElement>(null);
+    const [prefixWidth, setPrefixWidth] = useState(0);
+
+    useLayoutEffect(() => {
+      if (prefixRef.current) {
+        setPrefixWidth(prefixRef.current.getBoundingClientRect().width);
+      }
+    }, [prefix]);
 
     // Dynamic left padding when we have icon or prefix. We favour prefix because in this
     // UI we won't render prefix and icon simultaneously on the left.
     const hasLeftAdornment = !!prefix || (icon && iconPosition === "left");
-    const leftPaddingClass = prefix
-      ? "pl-24" // roughly 6rem, enough for `brev.ly/` and a little more
-      : icon && iconPosition === "left"
-      ? "pl-9"
-      : "";
-
+    const leftPaddingClass = icon && iconPosition === "left" ? "pl-9" : "";
     const rightPaddingClass = icon && iconPosition === "right" ? "pr-9" : "";
+    const inputStyle = prefix ? { paddingLeft: prefixWidth + 12 } : undefined;
 
     return (
       <div className={fullWidth ? "w-full" : ""}>
@@ -86,7 +97,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {prefix && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 select-none text-gray-scale-400">
+            <span
+              ref={prefixRef}
+              className="absolute left-3 top-1/2 -translate-y-1/2 select-none text-gray-scale-400"
+            >
               {prefix}
             </span>
           )}
@@ -94,6 +108,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={`${inputClasses} ${leftPaddingClass} ${rightPaddingClass}`}
+            style={inputStyle}
             {...props}
           />
           {icon && (

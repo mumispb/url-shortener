@@ -49,7 +49,9 @@ export function Redirect() {
         <div className="bg-white rounded-lg max-w-md w-full p-8 flex flex-col items-center justify-center">
           <LogoIcon className="w-12 h-12 text-blue-base mb-4" />
 
-          <h2 className="text-xl font-bold mb-2">Redirecionando...</h2>
+          <h2 className="text-xl font-bold mb-2 text-gray-scale-600">
+            Redirecionando...
+          </h2>
 
           <p className="text-center text-gray-scale-500 mb-2">
             O link será aberto automaticamente em alguns instantes.

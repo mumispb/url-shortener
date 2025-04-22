@@ -3,19 +3,30 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useState, useEffect } from "react";
 import { useLinks } from "../store/links";
-import { Download, Copy, Trash2 } from "lucide-react";
 import { exportShortens } from "../http/shortens";
+import { z } from "zod";
+import type { ZodIssue } from "zod";
+import { Copy, Trash, DownloadSimple } from "@phosphor-icons/react";
 
-interface LinkItem {
-  id: string;
-  shortUrl: string;
-  originalUrl: string;
-  accessCount: number;
-}
+const linkInputSchema = z.object({
+  originalUrl: z
+    .string()
+    .nonempty("Infome uma URL válida")
+    .url("Infome uma URL válida"),
+  slug: z
+    .string()
+    .nonempty("Informe uma URL minúscula e sem espaço/caracter especial")
+    .regex(
+      /^[a-z0-9]+$/,
+      "Informe uma URL minúscula e sem espaço/caracter especial"
+    ),
+});
 
 export function Home() {
   const [originalUrl, setOriginalUrl] = useState("");
   const [slug, setSlug] = useState("");
+  const [originalUrlError, setOriginalUrlError] = useState<string>();
+  const [slugError, setSlugError] = useState<string>();
   const linksMap = useLinks((state) => state.links);
   const isLoading = useLinks((state) => state.isLoading);
   const createLink = useLinks((state) => state.createLink);
@@ -34,22 +45,42 @@ export function Home() {
     const bc = new BroadcastChannel("visits");
     bc.onmessage = (event) => {
       const visitSlug = event.data as string;
-      // increment access count in store
       useLinks.getState().incrementAccessCount(visitSlug);
     };
     return () => bc.close();
   }, []);
 
   const handleSaveLink = async () => {
-    if (!originalUrl || !slug) return;
-    console.log("handleSaveLink:", { originalUrl, slug });
-    const fullUrl = originalUrl.startsWith("http")
+    // clear previous errors
+    setOriginalUrlError(undefined);
+    setSlugError(undefined);
+
+    // prepare URL with protocol
+    const fullOriginalUrl = originalUrl.startsWith("http")
       ? originalUrl
       : `https://${originalUrl}`;
-    console.log("fullUrl =>", fullUrl);
+
+    // validate using zod schema
+    const result = linkInputSchema.safeParse({
+      originalUrl: fullOriginalUrl,
+      slug,
+    });
+    if (!result.success) {
+      result.error.issues.forEach((issue: ZodIssue) => {
+        if (issue.path[0] === "originalUrl") {
+          setOriginalUrlError(issue.message);
+        }
+        if (issue.path[0] === "slug") {
+          setSlugError(issue.message);
+        }
+      });
+      return;
+    }
+
+    // all good, proceed with creation
+    console.log("handleSaveLink:", result.data);
     try {
-      console.log("createLink:", { fullUrl, slug });
-      await createLink(fullUrl, slug);
+      await createLink(result.data.originalUrl, result.data.slug);
       setOriginalUrl("");
       setSlug("");
     } catch (err) {
@@ -86,7 +117,12 @@ export function Home() {
                 label="LINK ORIGINAL"
                 placeholder="www.exemplo.com.br"
                 value={originalUrl}
-                onChange={(e) => setOriginalUrl(e.target.value)}
+                onChange={(e) => {
+                  setOriginalUrl(e.target.value);
+                  if (originalUrlError) setOriginalUrlError(undefined);
+                }}
+                state={originalUrlError ? "error" : "default"}
+                error={originalUrlError}
               />
 
               <Input
@@ -94,13 +130,18 @@ export function Home() {
                 prefix="brev.ly/"
                 placeholder="meu-link"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value.replace(/\s+/g, ""))}
+                onChange={(e) => {
+                  setSlug(e.target.value.replace(/\s+/g, ""));
+                  if (slugError) setSlugError(undefined);
+                }}
+                state={slugError ? "error" : "default"}
+                error={slugError}
               />
 
               <Button
                 onClick={handleSaveLink}
                 className="mt-4 w-full"
-                disabled={isLoading}
+                disabled={!isLoading}
               >
                 {isLoading ? "Salvando..." : "Salvar link"}
               </Button>
@@ -119,10 +160,8 @@ export function Home() {
               </h2>
               <Button
                 variant="secondary"
-                size="default"
-                leftIcon={<Download size={16} />}
+                leftIcon={<DownloadSimple size={16} />}
                 onClick={handleExportCsv}
-                className="border-transparent"
               >
                 Baixar CSV
               </Button>
@@ -137,7 +176,7 @@ export function Home() {
                   return (
                     <div
                       key={linkSlug}
-                      className="border-b pb-2 flex justify-between items-start gap-4"
+                      className="border-b pb-2 flex items-center gap-4"
                     >
                       <div className="flex-1 min-w-0">
                         <a
@@ -149,30 +188,31 @@ export function Home() {
                         <div className="text-sm text-gray-scale-500 truncate">
                           {link.originalUrl.replace(/^https?:\/\//, "https://")}
                         </div>
-                        <div className="text-xs text-gray-scale-400">
-                          {link.accessCount} acessos
-                        </div>
                       </div>
-
-                      <div className="flex flex-col gap-2 items-end pt-1">
-                        <button
+                      <div className="flex items-center gap-1 ml-auto">
+                        <span className="text-xs text-gray-scale-500 whitespace-nowrap mr-4">
+                          {link.accessCount} acessos
+                        </span>
+                        <Button
                           type="button"
-                          className="text-gray-scale-400 hover:text-blue-base"
+                          variant="icon"
+                          className="text-gray-scale-600 hover:text-blue-base"
                           onClick={() =>
                             navigator.clipboard.writeText(
                               `https://${friendlyUrl}`
                             )
                           }
+                          leftIcon={<Copy size={16} />}
                         >
-                          <Copy size={16} />
-                        </button>
-                        <button
+                          {/* Icon is now passed via leftIcon */}
+                        </Button>
+                        <Button
                           type="button"
+                          variant="icon"
+                          leftIcon={<Trash size={16} />}
+                          className="text-gray-scale-600 hover:border-error"
                           onClick={() => deleteLink(linkSlug)}
-                          className="text-gray-scale-400 hover:text-red-500"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        />
                       </div>
                     </div>
                   );

@@ -3,62 +3,57 @@ import type { ComponentProps } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 const buttonVariants = tv({
-  base: "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-base",
+  base: "inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-base disabled:pointer-events-none",
 
   variants: {
     variant: {
       primary:
-        "bg-blue-base text-gray-scale-0 hover:bg-blue-dark disabled:bg-blue-base/50",
+        "bg-blue-base text-gray-scale-0 text-md rounded px-4 py-4 hover:bg-blue-dark hover:border-blue-dark rounded-lg disabled:bg-blue-base disabled:opacity-50 disabled:cursor-not-allowed",
       secondary:
-        "bg-gray-scale-200 text-gray-scale-600 border border-gray-scale-300 hover:border-blue-base disabled:text-gray-scale-400 disabled:bg-gray-scale-200 disabled:border-gray-scale-300",
-    },
-    size: {
-      default: "h-10 px-4 py-2",
-      sm: "h-8 px-3 text-sm",
-      icon: "h-10 w-10 p-2",
-      "icon-sm": "h-8 w-8 p-1.5",
-    },
-    withIcon: {
-      true: "inline-flex items-center gap-2",
+        "text-xs bg-gray-scale-200 text-gray-scale-600 border-gray-scale-300 rounded gap-2 px-4 py-2 hover:border-blue-base disabled:bg-gray-scale-200",
+      icon: "p-2 bg-gray-scale-200 text-gray-scale-600 border-gray-scale-300 rounded hover:border-blue-base",
     },
   },
 
   defaultVariants: {
     variant: "primary",
-    size: "default",
   },
 });
 
 type ButtonProps = ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
+  Omit<VariantProps<typeof buttonVariants>, "withIcon"> & {
     asChild?: boolean;
     leftIcon?: React.ReactNode;
-    rightIcon?: React.ReactNode;
   };
 
 export function Button({
   variant,
-  size,
   className,
   asChild,
   leftIcon,
-  rightIcon,
   disabled,
   children,
   ...props
 }: ButtonProps) {
   const Component = asChild ? Slot : "button";
-  const withIcon = !!(leftIcon || rightIcon);
+
+  const iconClass =
+    variant === "secondary" && disabled ? "text-gray-scale-500" : "";
+
+  const textClass =
+    variant === "secondary" && disabled ? "text-gray-scale-400" : "";
 
   return (
     <Component
-      className={buttonVariants({ variant, size, withIcon, className })}
+      className={buttonVariants({
+        variant,
+        className,
+      })}
       disabled={disabled}
       {...props}
     >
-      {leftIcon}
-      {children}
-      {rightIcon}
+      {leftIcon && <span className={iconClass}>{leftIcon}</span>}
+      {variant !== "icon" && <span className={textClass}>{children}</span>}
     </Component>
   );
 }
