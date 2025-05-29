@@ -31,7 +31,5 @@ export async function uploadFileToStorage(
     }
   );
 
-  console.log({ data: response.data });
-
   return { url: response.data.url };
 }

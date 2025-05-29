@@ -7,19 +7,6 @@ import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 
 describe("shorten url", () => {
-  // beforeAll(() => {
-  //   vi.mock("@/infra/storage/upload-file-to-storage", () => {
-  //     return {
-  //       uploadFileToStorage: vi.fn().mockImplementation(() => {
-  //         return {
-  //           key: `${randomUUID()}.jpg`,
-  //           url: "https://storage.com/image.jpg",
-  //         };
-  //       }),
-  //     };
-  //   });
-  // });
-
   it("should be able to create a shortened url", async () => {
     const originalUrl = `https://www.${nanoid()}.com`;
 

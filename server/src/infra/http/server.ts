@@ -13,6 +13,7 @@ import {
   validatorCompiler,
 } from "fastify-type-provider-zod";
 import { exportShortensRoute } from "@/infra/http/routes/export-shortens";
+import { env } from "@/env";
 
 const server = fastify();
 
@@ -54,6 +55,6 @@ server.register(deleteShortensRoute);
 server.register(getShortensRoute);
 server.register(exportShortensRoute);
 
-server.listen({ port: 3333, host: "0.0.0.0" }).then(() => {
+server.listen({ port: env.PORT, host: "0.0.0.0" }).then(() => {
   console.log("HTTP Server running!");
 });

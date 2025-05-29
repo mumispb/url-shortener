@@ -19,8 +19,6 @@ export function UploadWidgetUploadItem({
   const cancelUpload = useUploads((store) => store.cancelUpload);
   const retryUpload = useUploads((store) => store.retryUpload);
 
-  console.log(upload);
-
   const progress = Math.min(
     upload.compressedSizeInBytes
       ? Math.round(

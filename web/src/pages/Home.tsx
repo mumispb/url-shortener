@@ -134,7 +134,7 @@ export function Home() {
 
             <Input
               label="LINK ENCURTADO"
-              prefix="brev.ly/"
+              prefix={`${import.meta.env.VITE_FRONTEND_URL}/`}
               placeholder="meu-link"
               value={slug}
               onChange={(e) => {
@@ -200,7 +200,7 @@ export function Home() {
                           href={`/${link.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={() => incrementVisits(link.slug)}
+                          // onClick={() => incrementVisits(link.slug)}
                           className="font-medium text-blue-base hover:underline break-all"
                         >
                           {friendlyUrl}
@@ -218,7 +218,7 @@ export function Home() {
                           variant="icon"
                           className="text-gray-scale-600 hover:text-blue-base"
                           onClick={() => {
-                            const fullUrl = `https://${window.location.host}/${link.slug}`;
+                            const fullUrl = `${window.location.href}${link.slug}`;
                             navigator.clipboard.writeText(fullUrl);
                             setToast({
                               title: "Link copiado com sucesso",
