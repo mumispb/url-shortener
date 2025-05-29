@@ -134,7 +134,7 @@ export function Home() {
 
             <Input
               label="LINK ENCURTADO"
-              prefix={`${import.meta.env.VITE_FRONTEND_URL}/`}
+              prefix={"brev.ly/"}
               placeholder="meu-link"
               value={slug}
               onChange={(e) => {

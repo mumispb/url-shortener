@@ -14,7 +14,7 @@ export function NotFound() {
             O link que você está tentando acessar não existe, foi removido ou é
             uma URL inválida. Saiba mais em{" "}
             <Link to="/" className="text-blue-base">
-              {import.meta.env.VITE_FRONTEND_URL}
+              brev.ly
             </Link>
             .
           </p>
